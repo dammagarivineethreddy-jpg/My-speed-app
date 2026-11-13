@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MySpend">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>MySpend</title>
+<style>
+:root{color-scheme:light;--bg:#f4f6fb;--card:#fff;--ink:#172033;--muted:#738096;--line:#e8ecf3;--accent:#5b67e8;--green:#159b72;--red:#df5b66;--shadow:0 8px 26px #1b2b4a0d}
+[data-theme=dark]{color-scheme:dark;--bg:#0d1422;--card:#172235;--ink:#edf2ff;--muted:#9aa8bf;--line:#29364b;--accent:#8992ff;--green:#43c69a;--red:#ff7d88;--shadow:none}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:90px}
+header{padding:22px 18px 14px;display:flex;align-items:center;justify-content:space-between;max-width:760px;margin:auto}
+.brand{font-size:23px;font-weight:800;letter-spacing:-.6px}.brand span{color:var(--accent)}.month{color:var(--muted);font-size:13px;margin-top:4px}
+main{max-width:760px;margin:auto;padding:0 16px}.screen{display:none}.screen.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin:10px 0;box-shadow:var(--shadow)}
+.hero{background:linear-gradient(135deg,#515fe0,#7e70ef);color:white;border:0;padding:22px}
+.hero small{opacity:.82}.balance{font-size:34px;font-weight:800;margin:8px 0 18px;letter-spacing:-1px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#ffffff20;border-radius:14px;padding:12px}.stat small{opacity:.8}.stat strong{display:block;font-size:18px;margin-top:5px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.muted{color:var(--muted)}.section-title{font-weight:750;font-size:17px;margin:20px 2px 8px}
+.btn{border:0;border-radius:13px;padding:13px 16px;background:var(--accent);color:white;font-weight:700;font-size:15px;cursor:pointer}.btn.secondary{background:var(--bg);color:var(--ink);border:1px solid var(--line)}.btn.danger{background:#fff0f1;color:var(--red)}
+input,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit;margin:6px 0 14px;outline:none}
+label{font-size:13px;font-weight:650;color:var(--muted)}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tx{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.tx:last-child{border:0}.bubble{width:42px;height:42px;border-radius:14px;background:var(--bg);display:grid;place-items:center;font-size:20px}.txname{font-weight:700}.txmeta{font-size:12px;color:var(--muted);margin-top:3px}.amount{font-weight:750;white-space:nowrap}.expense{color:var(--red)}.income{color:var(--green)}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:9px 5px calc(9px + env(safe-area-inset-bottom));z-index:5}
+nav button{flex:1;max-width:150px;border:0;background:none;color:var(--muted);font-size:11px;padding:6px 2px;cursor:pointer}nav button b{display:block;font-size:20px;margin-bottom:3px}nav button.active{color:var(--accent);font-weight:800}
+.pill{border-radius:30px;background:var(--bg);padding:7px 11px;font-size:12px;color:var(--muted);border:1px solid var(--line)}
+.empty{text-align:center;padding:28px 8px;color:var(--muted)}.bar{height:9px;border-radius:10px;background:var(--bg);overflow:hidden;margin-top:9px}.bar i{display:block;height:100%;background:var(--accent);border-radius:10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{flex:1}
+h2{font-size:20px;margin:8px 0 16px}h3{font-size:16px;margin:0 0 12px}
+@media(min-width:600px){main{padding:0 24px}.hero{padding:26px}.balance{font-size:40px}}
+</style>
+</head>
+<body>
+<header><div><div class="brand">My<span>Spend</span></div><div class="month" id="monthLabel"></div></div><div class="pill">₹ INR</div></header>
+<main>
+<section class="screen active" id="home">
+ <div class="card hero"><small>Available balance</small><div class="balance" id="balance">₹0</div><div class="stats"><div class="stat"><small>Income this month</small><strong id="income">₹0</strong></div><div class="stat"><small>Expenses this month</small><strong id="expense">₹0</strong></div></div></div>
+ <div class="actions"><button class="btn" onclick="openAdd('expense')">＋ Add expense</button><button class="btn secondary" onclick="openAdd('income')">＋ Add income</button></div>
+ <div class="section-title">Monthly budget</div><div class="card" id="budgetCard"></div>
+ <div class="row section-title"><span>Recent transactions</span><button class="pill" onclick="show('history')">See all</button></div><div class="card" id="recent"></div>
+</section>
+<section class="screen" id="add"><h2 id="formTitle">Add expense</h2><div class="card">
+ <label>Type</label><select id="type"><option value="expense">Expense</option><option value="income">Income</option></select>
+ <label>Amount (₹)</label><input id="amount" type="number" min="1" step="0.01" placeholder="e.g. 250">
+ <label>Category</label><select id="category"></select>
+ <label>Note</label><input id="note" maxlength="70" placeholder="What was it for?">
+ <label>Date</label><input id="date" type="date">
+ <button class="btn" style="width:100%" onclick="saveTx()">Save transaction</button>
+ <p class="muted" id="editHint" style="font-size:12px"></p>
+ </div></section>
+<section class="screen" id="history"><div class="row"><h2>History</h2><select id="filter" style="width:auto" onchange="renderHistory()"><option value="all">All</option><option value="expense">Expenses</option><option value="income">Income</option></select></div><input id="search" placeholder="Search notes or categories" oninput="renderHistory()"><div class="card" id="historyList"></div></section>
+<section class="screen" id="reports"><h2>Reports</h2><div class="card"><h3>This month by category</h3><div id="reportList"></div></div><div class="card"><h3>Monthly summary</h3><div id="summary"></div></div></section>
+<section class="screen" id="settings"><h2>Settings</h2><div class="card"><label>Monthly spending budget (₹)</label><input id="budgetInput" type="number" min="0" placeholder="Set your monthly budget"><button class="btn" onclick="saveBudget()">Save budget</button></div>
+<div class="card"><label>Appearance</label><select id="themeSelect" onchange="setTheme(this.value)"><option value="system">Use device setting</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+<div class="card"><h3>Your data stays on this device</h3><p class="muted">MySpend stores transactions in this browser on this iPhone. Clearing Safari website data or deleting the app may erase your records. Export a CSV backup regularly.</p><button class="btn secondary" onclick="exportCSV()">Export transactions (CSV)</button></div>
+<div class="card"><button class="btn danger" onclick="clearAll()">Delete all MySpend data</button></div></section>
+</main>
+<nav><button class="active" data-tab="home" onclick="show('home')"><b>⌂</b>Home</button><button data-tab="add" onclick="openAdd('expense')"><b>＋</b>Add</button><button data-tab="history" onclick="show('history')"><b>▤</b>History</button><button data-tab="reports" onclick="show('reports')"><b>◔</b>Reports</button><button data-tab="settings" onclick="show('settings')"><b>⚙</b>Settings</button></nav>
+<script>
+const KEY='myspend-v1';
+const cats={expense:['Food','Travel','Shopping','Bills','Health','Home','Entertainment','Education','Other'],income:['Salary','Business','Investment','Gift','Other']};
+let data=JSON.parse(localStorage.getItem(KEY)||'{"tx":[],"budget":0,"theme":"system"}'), editing=null;
+const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const now=new Date(), monthKey=d=>String(d).slice(0,7), current=now.toISOString().slice(0,7);
+document.getElementById('monthLabel').textContent=now.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+function persist(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));if(id==='add')document.getElementById('formTitle').textContent=editing?'Edit transaction':'Add transaction';render()}
+function openAdd(type){editing=null;document.getElementById('type').value=type;document.getElementById('amount').value='';document.getElementById('note').value='';document.getElementById('date').value=new Date().toISOString().slice(0,10);fillCats();document.getElementById('editHint').textContent='';show('add')}
+function fillCats(){let t=document.getElementById('type').value;let s=document.getElementById('category');s.innerHTML=cats[t].map(c=>`<option>${c}</option>`).join('')}
+document.getElementById('type').addEventListener('change',fillCats);
+function saveTx(){let amount=Number(document.getElementById('amount').value);if(!amount||amount<=0){alert('Enter an amount greater than zero.');return}
+let item={id:editing||Date.now().toString(),type:document.getElementById('type').value,amount,category:document.getElementById('category').value,note:document.getElementById('note').value.trim(),date:document.getElementById('date').value};
+if(editing){data.tx=data.tx.map(x=>x.id===editing?item:x)}else data.tx.push(item);editing=null;persist();show('home')}
+function sums(list,type){return list.filter(x=>x.type===type).reduce((a,x)=>a+x.amount,0)}
+function txHTML(x){return `<div class="tx"><div class="bubble">${x.type==='income'?'↗':'•'}</div><div style="flex:1;min-width:0"><div class="txname">${esc(x.note||x.category)}</div><div class="txmeta">${esc(x.category)} · ${x.date}</div></div><div class="amount ${x.type}">${x.type==='income'?'+':'−'}${money(x.amount)}</div></div>`}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){let m=data.tx.filter(x=>x.date.startsWith(current)),inc=sums(m,'income'),exp=sums(m,'expense'),allInc=sums(data.tx,'income'),allExp=sums(data.tx,'expense');
+document.getElementById('balance').textContent=money(allInc-allExp);document.getElementById('income').textContent=money(inc);document.getElementById('expense').textContent=money(exp);
+let b=data.budget||0,p=b?Math.min(100,exp/b*100):0;document.getElementById('budgetCard').innerHTML=b?`<div class="row"><strong>${money(exp)} spent</strong><span class="muted">${money(b)} budget</span></div><div class="bar"><i style="width:${p}%"></i></div><p class="muted">${money(Math.max(0,b-exp))} remaining this month</p>`:'<p class="muted">No budget set yet. Add one in Settings.</p>';
+let recent=[...data.tx].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,5);document.getElementById('recent').innerHTML=recent.length?recent.map(txHTML).join(''):'<div class="empty">No transactions yet. Add your first expense.</div>';
+document.getElementById('budgetInput').value=data.budget||'';document.getElementById('themeSelect').value=data.theme||'system';renderHistory();renderReports()}
+function renderHistory(){let q=(document.getElementById('search')?.value||'').toLowerCase(),f=document.getElementById('filter')?.value||'all';let a=[...data.tx].filter(x=>(f==='all'||x.type===f)&&(`${x.note} ${x.category}`).toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));document.getElementById('historyList').innerHTML=a.length?a.map(x=>txHTML(x)+`<div class="row" style="justify-content:flex-end;margin-top:-4px;margin-bottom:8px"><button class="pill" onclick="editTx('${x.id}')">Edit</button><button class="pill" onclick="deleteTx('${x.id}')">Delete</button></div>`).join(''):'<div class="empty">No matching transactions.</div>'}
+function editTx(id){let x=data.tx.find(t=>t.id===id);if(!x)return;editing=id;document.getElementById('type').value=x.type;fillCats();document.getElementById('amount').value=x.amount;document.getElementById('category').value=x.category;document.getElementById('note').value=x.note;document.getElementById('date').value=x.date;document.getElementById('editHint').textContent='Editing existing transaction';show('add')}
+function deleteTx(id){if(confirm('Delete this transaction?')){data.tx=data.tx.filter(x=>x.id!==id);persist()}}
+function renderReports(){let m=data.tx.filter(x=>x.date.startsWith(current)&&x.type==='expense'),total=sums(m,'expense'),groups={};m.forEach(x=>groups[x.category]=(groups[x.category]||0)+x.amount);let entries=Object.entries(groups).sort((a,b)=>b[1]-a[1]);document.getElementById('reportList').innerHTML=entries.length?entries.map(([c,v])=>`<div style="margin:14px 0"><div class="row"><strong>${esc(c)}</strong><span>${money(v)} · ${total?Math.round(v/total*100):0}%</span></div><div class="bar"><i style="width:${total?v/total*100:0}%"></i></div></div>`).join(''):'<div class="empty">Add expenses to see your report.</div>';
+document.getElementById('summary').innerHTML=`<div class="row"><span class="muted">Income</span><strong class="income">${money(sums(data.tx.filter(x=>x.date.startsWith(current)),'income'))}</strong></div><div class="row" style="margin-top:12px"><span class="muted">Expenses</span><strong class="expense">${money(total)}</strong></div>`}
+function saveBudget(){data.budget=Math.max(0,Number(document.getElementById('budgetInput').value)||0);persist();alert('Budget saved.')}
+function setTheme(t){data.theme=t;localStorage.setItem(KEY,JSON.stringify(data));applyTheme()}
+function applyTheme(){let t=data.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):data.theme;document.documentElement.dataset.theme=t}
+function exportCSV(){let rows=[['Date','Type','Amount INR','Category','Note'],...data.tx.map(x=>[x.date,x.type,x.amount,x.category,x.note])];let csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='MySpend-transactions.csv';a.click();URL.revokeObjectURL(a.href)}
+function clearAll(){if(confirm('Permanently delete all transactions and budget on this device?')){data={tx:[],budget:0,theme:data.theme};persist()}}
+applyTheme();fillCats();render();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body></html>
